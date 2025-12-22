@@ -9,6 +9,9 @@ class_name TwinklyControl extends Node
 ## Emitted when a device is discovred
 signal device_discovred(p_device: TwinklyDevice)
 
+## Emitted when the artnet status is changed
+signal art_net_status_changed(status: bool)
+
 
 ## Twinkly discovery port
 const BROADCAST_DISCO_PORT: int = 5555
@@ -27,6 +30,9 @@ const ART_NET_MIN_LENGTH: int = 18
 
 ## Oppcode for Art-DMX packet
 const ART_DMX_OPCODE: int = 0x5000
+
+## Time in seconds before an incomming artnet signal is deemed lost
+const ART_NET_KEEP_ALIVE_TIME: int = 3
 
 
 ## UDP discovery peer for finding Twinkly devices
@@ -50,9 +56,16 @@ var _current_dmx: Dictionary[int, int] = {}
 ## The Timer used for discovery messages
 var _discovery_timer: Timer = Timer.new()
 
+## The Artnet activity timer
+var _art_net_timer: Timer = Timer.new()
+
 ## Output queued state
 var _output_queued: bool = false
- 
+
+## Artnet activity status
+var _art_net_status: bool = false
+
+
 ## Ready
 func _ready() -> void:
 	_discovery_peer.bind(BROADCAST_DISCO_PORT)
@@ -63,9 +76,12 @@ func _ready() -> void:
 	
 	send_discovery()
 	add_child(_discovery_timer)
+	add_child(_art_net_timer)
 	
 	_discovery_timer.timeout.connect(send_discovery)
 	_discovery_timer.start(DISCOVERY_TIME)
+	
+	_art_net_timer.timeout.connect(_art_net_timeout)
 
 
 ## Process
@@ -122,6 +138,11 @@ func send_discovery() -> void:
 		_discovery_peer.put_packet(_discovery_message)
 
 
+## Gets the current artnet status
+func get_artnet_status() -> bool:
+	return _art_net_status
+
+
 ## Handles an incomming art-net packet
 func _handle_artnet_input(p_packet: PackedByteArray) -> void:
 	if p_packet.size() < ART_NET_MIN_LENGTH or (p_packet.get(9) << 8) | p_packet.get(8) != ART_DMX_OPCODE:
@@ -140,6 +161,11 @@ func _handle_artnet_input(p_packet: PackedByteArray) -> void:
 	if not _output_queued:
 		_output_dmx.call_deferred()
 		_output_queued = true
+	
+	if not _art_net_status:
+		_art_net_status = true
+		_art_net_timer.start(ART_NET_KEEP_ALIVE_TIME)
+		art_net_status_changed.emit(_art_net_status)
 
 
 ## Outputs dmx data to the devices
@@ -157,3 +183,10 @@ func _output_dmx() -> void:
 			buffer[index - dmx_base] = _current_dmx.get(index, 0) 
 		
 		device.send_dmx_data(buffer)
+
+
+## Called when the art net timer times out
+func _art_net_timeout() -> void:
+	_art_net_status = false
+	art_net_status_changed.emit(_art_net_status)
+	

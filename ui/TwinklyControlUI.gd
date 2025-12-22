@@ -6,6 +6,13 @@ class_name TwinklyControlUI extends PanelContainer
 ## UI script for TwinklyControl
 
 
+## Color for when artnet is active
+const ART_NET_ACTIVE_COLOR: Color = Color.GREEN
+
+## Color for when artnet is inactive
+const ART_NET_INACTIVE_COLOR: Color = Color.GRAY
+
+
 ## Enum for Columns
 enum Columns {
 	NAME,
@@ -25,6 +32,9 @@ enum Columns {
 ## The Disconenct button
 @export var disconnect_button: Button
 
+## The PanelContainer for artnet status
+@export var art_net_status: Control
+
 
 ## RefMap for TwinklyDevice: Tree
 var _devices: RefMap = RefMap.new()
@@ -41,8 +51,17 @@ func _ready() -> void:
 		device_tree.set_column_title(column, Columns.keys()[column].capitalize())
 	
 	device_tree.create_item()
+	
 	TC.device_discovred.connect(_add_device)
+	TC.art_net_status_changed.connect(_set_artnet_status)
+	
+	_set_artnet_status(TC.get_artnet_status())
 
+
+## Called when the art net status changes
+func _set_artnet_status(p_status: bool) -> void:
+	art_net_status.set_modulate(ART_NET_ACTIVE_COLOR if p_status else ART_NET_INACTIVE_COLOR)
+	
 
 ## Adds a TwinklyDevice to the tree
 func _add_device(p_device: TwinklyDevice) -> void:
