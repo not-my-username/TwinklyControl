@@ -11,7 +11,8 @@ enum Columns {
 	NAME,
 	IP_ADDR,
 	CONNECTION_STATE,
-	DMX_PATCH
+	DMX_PATCH,
+	CHANNELS_PER_PIXEL,
 }
 
 
@@ -54,11 +55,14 @@ func _add_device(p_device: TwinklyDevice) -> void:
 	tree_item.set_text(Columns.IP_ADDR, p_device.get_device_ip())
 	tree_item.set_text(Columns.CONNECTION_STATE, TwinklyDevice.ConnectionState.keys()[p_device.get_connection_state()])
 	tree_item.set_text(Columns.DMX_PATCH, str(p_device.get_universe_patch()) + "." + str(p_device.get_channel_patch()))
+	tree_item.set_text(Columns.CHANNELS_PER_PIXEL, str(p_device.get_channels_per_pixel()))
 	
 	tree_item.set_editable(Columns.DMX_PATCH, true)
+	tree_item.set_editable(Columns.CHANNELS_PER_PIXEL, true)
 	
 	p_device.connection_state_changed.connect(_on_device_connection_state_changed.bind(p_device))
 	p_device.patched_changed.connect(_on_device_patch_changed.bind(p_device))
+	p_device.channels_per_pixel_changed.connect(_on_device_channels_per_pixel_changed.bind(p_device))
 	
 	_devices.map(p_device, tree_item)
 
@@ -74,6 +78,11 @@ func _on_device_connection_state_changed(p_connection_state: TwinklyDevice.Conne
 	
 	if p_device == _selected_device:
 		_update_buttons()
+
+
+## Called when the channels per pixel is changed
+func _on_device_channels_per_pixel_changed(p_channels_per_pixel: int, p_device: TwinklyDevice) -> void:
+	_devices.left(p_device).set_text(Columns.CHANNELS_PER_PIXEL, str(p_channels_per_pixel))
 
 
 ## updates buttons disabled state from the current selected device
@@ -109,6 +118,10 @@ func _on_device_tree_item_edited() -> void:
 				channel = clamp(int(data[1]), 1, 255)
 			
 			device.set_patch(channel, universe)
+		
+		Columns.CHANNELS_PER_PIXEL:
+			var channels: int = int(item.get_text(column))
+			device.set_channels_per_pixel(channels)
 
 
 

@@ -12,6 +12,9 @@ signal connection_state_changed(connecion_state: ConnectionState)
 ## Emitted when the channel or universe patch is changed
 signal patched_changed(channel: int, universe: int)
 
+## Emitted when the number of channels per pixel is changed
+signal channels_per_pixel_changed(channels_per_pixel: int)
+
 
 ## API base endpoint
 const API_BASE: String = "/xled/v1/"
@@ -78,7 +81,10 @@ var _auth_token_base64: String = ""
 var _led_layout: Array
 
 ## Channel length of the device
-var _channel_length: int = 570
+var _num_of_pixels: int = 570
+
+## Number of channels per pixel on the device
+var _channels_per_pixel: int = 3
 
 ## DMX channel patch
 var _channel_patch: int = 1
@@ -137,6 +143,12 @@ func set_patch(p_channel: int, p_universe: int) -> void:
 	patched_changed.emit(_channel_patch, _universe_patch)
 
 
+## Sets the number of channed used on each pixel
+func set_channels_per_pixel(p_channels: int) -> void:
+	_channels_per_pixel = clamp(p_channels, 1, INF)
+	channels_per_pixel_changed.emit(_channels_per_pixel)
+
+
 ## Gets the channel patch of the device
 func get_channel_patch() -> int:
 	return _channel_patch
@@ -145,6 +157,11 @@ func get_channel_patch() -> int:
 ## Gets the universe patch of a device
 func get_universe_patch() -> int:
 	return _universe_patch
+
+
+## Gets the number of channels per pixel
+func get_channels_per_pixel() -> int:
+	return _channels_per_pixel
 
 
 ## Gets the device name
@@ -164,7 +181,7 @@ func get_auth_token_as_headder() -> String:
 
 ## Gets the channel length of the light
 func get_channel_length() -> int:
-	return _channel_length
+	return _num_of_pixels * get_channels_per_pixel()
 
 
 ## Gets the current Connection State
@@ -269,7 +286,7 @@ func _handle_channel_count(p_packet: PackedByteArray) -> void:
 	var lights: Array = type_convert(json.get("coordinates", ""), TYPE_ARRAY)
 	
 	_led_layout = lights
-	_channel_length = lights.size() * 3
+	_num_of_pixels = lights.size()
 	
-	print("Found: ", _channel_length, " Channels on device")
+	print("Found: ", get_channel_length(), " Channels on device")
 	_enable_realtime_control(true)

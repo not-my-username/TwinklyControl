@@ -11,6 +11,8 @@ config_version=5
 [application]
 
 config/name="TwinklyControl"
+config/description="Allows control of Twinkly LED lights via Art-Net"
+config/version="1.0.0"
 run/main_scene="uid://dm5p7beb8ctg0"
 config/features=PackedStringArray("4.5", "GL Compatibility")
 config/icon="res://icon.svg"
@@ -23,4 +25,5 @@ TC="*res://script/TwinklyControl.gd"
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true
 environment/defaults/default_clear_color=Color(0.09019608, 0.09019608, 0.09019608, 1)
