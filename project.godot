@@ -15,7 +15,9 @@ config/description="Allows control of Twinkly LED lights via Art-Net"
 config/version="1.0.0"
 run/main_scene="uid://dm5p7beb8ctg0"
 config/features=PackedStringArray("4.5", "GL Compatibility")
-config/icon="res://icon.svg"
+boot_splash/fullsize=false
+boot_splash/image="uid://cu0p85qhppf67"
+config/icon="uid://cu0p85qhppf67"
 
 [autoload]
 
