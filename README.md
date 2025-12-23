@@ -2,6 +2,8 @@
 
 **TwinklyControl** is a simple program that lets you control Twinkly LED lights using **Art-Net (DMX over IP)**.
 
+![Screenshot of the TwinklyControl user interface.](https://raw.githubusercontent.com/not-my-username/TwinklyControl/refs/heads/master/.github/UI.png)
+
 ## Overview
 
 - Art-Net input can be received on **any network interface**
